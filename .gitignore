@@ -1,0 +1,10 @@
+# Rust's output directory
+target/debug
+target/release
+
+# Local settings
+.soroban
+.stellar
+/dsponsor-admin/target
+/dsponsor/target
+dsponsor-factory/target

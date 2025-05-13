@@ -1,0 +1,34 @@
+[workspace]
+resolver = "2"
+members = [
+    "dsponsor-admin",
+    "dsponsor-factory",
+    "dsponsor"
+]
+
+[workspace.package]
+version = "0.0.0"
+
+[workspace.dependencies]
+soroban-sdk = { version = "22.0.1" }
+
+[workspace.metadata]
+soroban = { version = "22.0.1" }
+
+[profile.release]
+opt-level = "z"
+overflow-checks = true
+debug = 0
+strip = "symbols"
+debug-assertions = false
+panic = "abort"
+codegen-units = 1
+lto = true
+
+[profile.dev]
+opt-level = 0
+debug = true
+
+[profile.release-with-logs]
+inherits = "release"
+debug-assertions = true 
