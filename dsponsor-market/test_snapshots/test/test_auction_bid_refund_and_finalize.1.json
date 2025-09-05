@@ -865,6 +865,33 @@
                       },
                       {
                         "key": {
+                          "symbol": "AUCT_TK"
+                        },
+                        "val": {
+                          "map": [
+                            {
+                              "key": {
+                                "vec": [
+                                  {
+                                    "address": "CC6YSLPYSKOZZFQSYO3UWY6VG5ZFKBXYOVDLAO7CVS26QZAFFR6AWO5K"
+                                  },
+                                  {
+                                    "i128": {
+                                      "hi": 0,
+                                      "lo": 1
+                                    }
+                                  }
+                                ]
+                              },
+                              "val": {
+                                "bool": true
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "key": {
                           "symbol": "LIST_CNT"
                         },
                         "val": {

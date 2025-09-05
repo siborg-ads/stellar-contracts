@@ -12,6 +12,11 @@ mod dsponsor {
 #[contract]
 pub struct DSponsorMarket;
 
+// Helper function to create a unique key for nft_contract + token_id
+fn create_token_key(nft_contract: &Address, token_id: i128) -> (Address, i128) {
+    (nft_contract.clone(), token_id)
+}
+
 // Storage keys
 const ADMIN: Symbol = symbol_short!("ADMIN");
 const NATIVE: Symbol = symbol_short!("NATIVE");
@@ -20,6 +25,8 @@ const LIST_CNT: Symbol = symbol_short!("LIST_CNT");
 const AUCT_CNT: Symbol = symbol_short!("AUCT_CNT");
 const LISTINGS: Symbol = symbol_short!("LISTINGS");
 const AUCTIONS: Symbol = symbol_short!("AUCTIONS");
+const LISTED_TOKENS: Symbol = symbol_short!("LISTED_TK");
+const AUCTIONED_TOKENS: Symbol = symbol_short!("AUCT_TK");
 
 #[contracttype]
 #[derive(Clone)]
@@ -83,6 +90,18 @@ impl DSponsorMarket {
         }
         seller.require_auth();
 
+        // Check if token is already listed using efficient mapping
+        let token_key = create_token_key(&nft_contract, token_id);
+        let mut listed_tokens: Map<(Address, i128), bool> = env
+            .storage()
+            .instance()
+            .get::<Symbol, Map<(Address, i128), bool>>(&LISTED_TOKENS)
+            .unwrap_or(Map::new(env));
+        
+        if listed_tokens.get(token_key.clone()).unwrap_or(false) {
+            panic!("Token is already listed. Please cancel existing listing first.");
+        }
+
         let curr = env.storage().instance().get::<Symbol, u32>(&LIST_CNT).unwrap_or(0);
         let new_id = curr + 1;
 
@@ -105,6 +124,10 @@ impl DSponsorMarket {
         env.storage().instance().set(&LISTINGS, &listings);
         env.storage().instance().set(&LIST_CNT, &new_id);
 
+        // Mark token as listed
+        listed_tokens.set(token_key, true);
+        env.storage().instance().set(&LISTED_TOKENS, &listed_tokens);
+
         env.events().publish((symbol_short!("LIST"),), (nft_contract, token_id, price));
         new_id
     }
@@ -124,8 +147,19 @@ impl DSponsorMarket {
         }
         caller.require_auth();
         l.active = false;
-        listings.set(listing_id, l);
+        listings.set(listing_id, l.clone());
         env.storage().instance().set(&LISTINGS, &listings);
+
+        // Remove token from listed tokens mapping
+        let token_key = create_token_key(&l.nft_contract, l.token_id);
+        let mut listed_tokens: Map<(Address, i128), bool> = env
+            .storage()
+            .instance()
+            .get::<Symbol, Map<(Address, i128), bool>>(&LISTED_TOKENS)
+            .unwrap_or(Map::new(env));
+        listed_tokens.remove(token_key);
+        env.storage().instance().set(&LISTED_TOKENS, &listed_tokens);
+
         env.events().publish((symbol_short!("LISTCXL"),), (listing_id,));
     }
 
@@ -179,6 +213,17 @@ impl DSponsorMarket {
         updated.active = false;
         listings.set(listing_id, updated);
         env.storage().instance().set(&LISTINGS, &listings);
+
+        // Remove token from listed tokens mapping
+        let token_key = create_token_key(&l.nft_contract, l.token_id);
+        let mut listed_tokens: Map<(Address, i128), bool> = env
+            .storage()
+            .instance()
+            .get::<Symbol, Map<(Address, i128), bool>>(&LISTED_TOKENS)
+            .unwrap_or(Map::new(env));
+        listed_tokens.remove(token_key);
+        env.storage().instance().set(&LISTED_TOKENS, &listed_tokens);
+
         env.events().publish((symbol_short!("SOLD"),), (listing_id, buyer));
     }
 
@@ -200,6 +245,31 @@ impl DSponsorMarket {
             panic!("Only owner can auction token");
         }
         seller.require_auth();
+
+        // Check if token is already listed or auctioned using efficient mappings
+        let token_key = create_token_key(&nft_contract, token_id);
+        
+        // Check if already listed
+        let listed_tokens: Map<(Address, i128), bool> = env
+            .storage()
+            .instance()
+            .get::<Symbol, Map<(Address, i128), bool>>(&LISTED_TOKENS)
+            .unwrap_or(Map::new(env));
+        
+        if listed_tokens.get(token_key.clone()).unwrap_or(false) {
+            panic!("Token is already listed. Please cancel existing listing first.");
+        }
+        
+        // Check if already auctioned
+        let auctioned_tokens: Map<(Address, i128), bool> = env
+            .storage()
+            .instance()
+            .get::<Symbol, Map<(Address, i128), bool>>(&AUCTIONED_TOKENS)
+            .unwrap_or(Map::new(env));
+        
+        if auctioned_tokens.get(token_key.clone()).unwrap_or(false) {
+            panic!("Token is already auctioned. Please cancel existing auction first.");
+        }
 
         let curr = env.storage().instance().get::<Symbol, u32>(&AUCT_CNT).unwrap_or(0);
         let new_id = curr + 1;
@@ -224,6 +294,16 @@ impl DSponsorMarket {
         auctions.set(new_id, a);
         env.storage().instance().set(&AUCTIONS, &auctions);
         env.storage().instance().set(&AUCT_CNT, &new_id);
+
+        // Mark token as auctioned
+        let mut auctioned_tokens: Map<(Address, i128), bool> = env
+            .storage()
+            .instance()
+            .get::<Symbol, Map<(Address, i128), bool>>(&AUCTIONED_TOKENS)
+            .unwrap_or(Map::new(env));
+        auctioned_tokens.set(token_key, true);
+        env.storage().instance().set(&AUCTIONED_TOKENS, &auctioned_tokens);
+
         env.events().publish((symbol_short!("AUCT"),), (nft_contract, token_id, reserve_price));
         new_id
     }

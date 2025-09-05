@@ -2,9 +2,9 @@ default: build
 
 # Variables
 DSPONSOR_FACTORY = CARMY52A7NMCHYYCWE3H52DP42RZEISOPUQWE4PQZ7JL3OLFL2UBTKER
-DSPONSOR_ADMIN = CAXT5KWMM6HLDC7PZG3DJEI3LOJHCWUT46WO43KIARNMMQ72TZSU22ZD
-DSPONSOR_MARKET = CDSLD6CYVWNUOA6N3YPUO5364EOXRDX6BT4FGYAIAUGCEXVCGA5ANLAP
-NFT_CONTRACT = CAP6CNBYGE7D6LVPIWNIHQX5QTR3IFCGGYMVZTCSLCC5VVLE43NT4WUF # Just for testing purposes
+DSPONSOR_ADMIN = CCOWQULXM7GAFJT5ONVSCQSAOSCDZZQPBMMXACAQCTUDIRRK4VUFKJ53
+DSPONSOR_MARKET = CAHANKZQY2WQI5YON72ZNRO7CTBHYTA7I2H2TYUGXIEK4TKHLSHN335G
+NFT_CONTRACT = CCPO3TEPSH2JW6AMCDIUOZ7VNX3LQCFIJEZEAWI64PN5RDQLCUQ64ED6 # Just for testing purposes
 SOURCE_ACCOUNT = siborg
 FEE_RECIPIENT = siborg
 NATIVE_XLM=CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC
@@ -68,6 +68,18 @@ initialize:
 		--bps 100 \
 		--admin $(SOURCE_ACCOUNT) \
 
+# Initialize the market contract
+initialize-market:
+	stellar contract invoke \
+		--id $(DSPONSOR_MARKET) \
+		--source $(SOURCE_ACCOUNT) \
+		--network $(NETWORK) \
+		-- \
+		initialize \
+		--admin $(SOURCE_ACCOUNT) \
+		--native_xlm $(NATIVE_XLM) \
+		--fee_bps 100 \
+
 create_offer:
 	stellar contract invoke \
 		--id $(DSPONSOR_ADMIN) \
@@ -87,6 +99,7 @@ create_nft_contract:
 		--init_params $() \
 		--native_xlm $(NATIVE_XLM) \
 		--salt 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef \
+
 
 
 get_offers:
@@ -132,5 +145,18 @@ admin-ready:
 	make sdk-gen
 
 .PHONY: default all test build build-debug fmt clean
+
+
+# nft testing:
+
+nft-allowance:
+	stellar contract invoke \
+		--id $(NFT_CONTRACT) \
+		--source $(SOURCE_ACCOUNT) \
+		--network $(NETWORK) \
+		-- \
+		is_approved \
+		--operator $(DSPONSOR_MARKET) \
+		--token_id 3 \
 
 # soroban contract asset id --asset native --network testnet

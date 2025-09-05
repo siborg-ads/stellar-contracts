@@ -1,0 +1,1 @@
+/home/testuser/Perso/Siborg/stellar-contracts/target/wasm32v1-none/release/dsponsor.wasm: /home/testuser/Perso/Siborg/stellar-contracts/dsponsor/src/lib.rs /home/testuser/Perso/Siborg/stellar-contracts/dsponsor/src/test.rs

@@ -478,6 +478,14 @@
                       },
                       {
                         "key": {
+                          "symbol": "LISTED_TK"
+                        },
+                        "val": {
+                          "map": []
+                        }
+                      },
+                      {
+                        "key": {
                           "symbol": "LISTINGS"
                         },
                         "val": {
