@@ -1,14 +1,14 @@
 default: build
 
 # Variables
-DSPONSOR_FACTORY = CARMY52A7NMCHYYCWE3H52DP42RZEISOPUQWE4PQZ7JL3OLFL2UBTKER
-DSPONSOR_ADMIN = CCOWQULXM7GAFJT5ONVSCQSAOSCDZZQPBMMXACAQCTUDIRRK4VUFKJ53
-DSPONSOR_MARKET = CAHANKZQY2WQI5YON72ZNRO7CTBHYTA7I2H2TYUGXIEK4TKHLSHN335G
+DSPONSOR_FACTORY = CAIFM7W2WMSIIDBPIACGG5FNXZ44DEPEYF7TDKIQ4BRNRT5E6VI33NWR
+DSPONSOR_ADMIN = CDH3FBNCCBXJXVBME2CF4QZYS27RJFSUVXKRHD5DYVKCKQDCAK6UZBN3
+DSPONSOR_MARKET = CCPJBIVAAXV2N3XNUO4IKILPPP3NDMFBBT7TABY2DO6ABOKSDRMKZJDM
 NFT_CONTRACT = CCPO3TEPSH2JW6AMCDIUOZ7VNX3LQCFIJEZEAWI64PN5RDQLCUQ64ED6 # Just for testing purposes
-SOURCE_ACCOUNT = siborg
-FEE_RECIPIENT = siborg
-NATIVE_XLM=CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC
-NETWORK = testnet
+SOURCE_ACCOUNT = siborg-mainnet
+FEE_RECIPIENT = siborg-mainnet
+NATIVE_XLM=CAS3J7GYLGXMF6TDJBBYYSE3HQ6BBSMLNUQ34T6TZMYMW2EVH34XOWMA
+NETWORK = mainnet
 
 all: test deploy-factory deploy
 
@@ -34,25 +34,26 @@ deploy:
 	stellar contract deploy \
  	--wasm target/wasm32v1-none/release/dsponsor_admin.wasm \
 	--source ${SOURCE_ACCOUNT} \
-	--network testnet 
+	--network ${NETWORK} 
+	-- --simulate
 
 deploy-factory: 
 	stellar contract deploy \
  	--wasm target/wasm32v1-none/release/dsponsor_factory.wasm \
 	--source ${SOURCE_ACCOUNT} \
-	--network testnet \
+	--network ${NETWORK} \
 
 deploy-market:
 	stellar contract deploy \
 	 --wasm target/wasm32v1-none/release/dsponsor_market.wasm \
 	 --source ${SOURCE_ACCOUNT} \
-	 --network testnet \
+	 --network ${NETWORK} \
 
 deploy-simple-nft: 
 	stellar contract deploy \
  	--wasm target/wasm32v1-none/release/dsponsor.wasm \
 	--source ${SOURCE_ACCOUNT} \
-	--network testnet \
+	--network ${NETWORK} \
 
 # Initialize the contract
 initialize:
