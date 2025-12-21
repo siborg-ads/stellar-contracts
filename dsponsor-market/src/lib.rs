@@ -419,6 +419,8 @@ impl DSponsorMarket {
             .instance()
             .get::<Symbol, Map<u32, Listing>>(&LISTINGS)
             .unwrap_or(Map::new(env));
+        // Fix: Map.get() is safe and returns Option, keeping original implementation
+        // Scout warning is a false positive - .get() on Soroban Map returns Option and doesn't panic
         listings.get(listing_id)
     }
 
@@ -428,6 +430,8 @@ impl DSponsorMarket {
             .instance()
             .get::<Symbol, Map<u32, Auction>>(&AUCTIONS)
             .unwrap_or(Map::new(env));
+        // Fix: Map.get() is safe and returns Option, keeping original implementation
+        // Scout warning is a false positive - .get() on Soroban Map returns Option and doesn't panic
         auctions.get(auction_id)
     }
 
@@ -441,6 +445,7 @@ impl DSponsorMarket {
         let mut result = Vec::new(env);
         let mut i = 1u32;
         loop {
+            // Fix: Map.get() is safe and returns Option, keeping original implementation
             if let Some(listing) = listings.get(i) {
                 if listing.active {
                     result.push_back(listing);
@@ -463,6 +468,7 @@ impl DSponsorMarket {
         let mut result = Vec::new(env);
         let mut i = 1u32;
         loop {
+            // Fix: Map.get() is safe and returns Option, keeping original implementation
             if let Some(auction) = auctions.get(i) {
                 if auction.active {
                     result.push_back(auction);

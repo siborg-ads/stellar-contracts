@@ -100,8 +100,8 @@ fn create_test_offer(
         },
     };
 
-    // Create the offer
-    let offer_id = client.create_offer(nft_contract, &offer_params);
+    // Create the offer - pass admin as caller since admin is in admins list
+    let offer_id = client.create_offer(&admin, nft_contract, &offer_params);
 
     (offer_id, offer_params)
 }
@@ -129,8 +129,9 @@ fn test_create_offer() {
         },
     };
 
-    // Create the offer
-    let offer_id = client.create_offer(&nft_contract, &offer_params);
+    // Create the offer - pass factory as caller since factory is in admins list
+    env.mock_all_auths();
+    let offer_id = client.create_offer(&factory, &nft_contract, &offer_params);
 
     // Verify the offer was created
     assert_eq!(offer_id, 1);

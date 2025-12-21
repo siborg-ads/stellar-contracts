@@ -9,3 +9,8 @@ target
 /dsponsor-admin/target
 /dsponsor/target
 dsponsor-factory/target
+dsponsor-market/target
+dsponsor/test_snapshots
+dsponsor-admin/test_snapshots
+dsponsor-factory/test_snapshots
+dsponsor-market/test_snapshots
