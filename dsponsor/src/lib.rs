@@ -296,9 +296,13 @@ impl DSponsorNFT {
             let appr_key = DataKey::Approvals(token_id);
 
             env.storage().persistent().set(&owner_key, &to);
+            // Clear any existing rental and set new owner as user
+            let renter_key = DataKey::Renter(token_id);
+            env.storage().persistent().remove(&renter_key);
+            // Fix: Use checked_add to prevent integer overflow (Scout audit fix)
+            let expiry_time = env.ledger().timestamp().checked_add(3153600000000u64).unwrap_or(u64::MAX);
+            Self::__set_user(env.clone(), to.clone(), token_id, to.clone(), expiry_time);
             env.storage().persistent().remove(&appr_key);
-            let expiry_time = env.ledger().timestamp() + 3153600000000;  // as long as possible for the minted
-            Self::__set_user(env.clone(), owner.clone(), token_id, to.clone(), expiry_time);  
             env.events()
                 .publish((symbol_short!("Transfer"),), (owner, to, token_id));
         } else {
@@ -343,10 +347,14 @@ impl DSponsorNFT {
         if !approvals.contains(&spender) {
             panic!("Spender is not approved for this token");
         }
-        let expiry_time = env.ledger().timestamp() + 3153600000000;  // as long as possible for the minted
-        Self::__set_user(env.clone(), spender.clone(), token_id, to.clone(), expiry_time);  
         let owner_key = DataKey::Owner(token_id);
         env.storage().persistent().set(&owner_key, &to);
+        // Clear any existing rental and set new owner as user
+            let renter_key = DataKey::Renter(token_id);
+            env.storage().persistent().remove(&renter_key);
+            // Fix: Use checked_add to prevent integer overflow (Scout audit fix)
+            let expiry_time = env.ledger().timestamp().checked_add(3153600000000u64).unwrap_or(u64::MAX);
+            Self::__set_user(env.clone(), to.clone(), token_id, to.clone(), expiry_time);
         env.storage().persistent().remove(&key);
 
         env.events()
@@ -554,8 +562,10 @@ impl DSponsorNFT {
         );
 
         // token_id must be token_count + 1
+        // Fix: Use checked_add to prevent integer overflow (Scout audit fix)
+        let next_token_id = token_count.checked_add(1).expect("Token ID overflow");
         assert!(
-            token_id == token_count + 1,
+            token_id == next_token_id,
             "Token ID must be the next number"
         );
 
@@ -567,7 +577,8 @@ impl DSponsorNFT {
         let owner_key = DataKey::Owner(token_id);
         env.storage().persistent().set(&owner_key, &to);
         // set the user of the token
-        let expiry_time = env.ledger().timestamp() + 3153600000000;  // as long as possible for the minted
+        // Fix: Use checked_add to prevent integer overflow (Scout audit fix)
+        let expiry_time = env.ledger().timestamp().checked_add(3153600000000u64).unwrap_or(u64::MAX);
         Self::__set_user(env.clone(), to.clone(), token_id, to.clone(), expiry_time);   
 
         env.events()

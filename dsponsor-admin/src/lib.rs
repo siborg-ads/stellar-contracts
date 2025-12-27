@@ -7,7 +7,7 @@ use soroban_sdk::{
 };
 
 mod dsponsor {
-    soroban_sdk::contractimport!(file = "../target/wasm32-unknown-unknown/release/dsponsor.wasm");
+    soroban_sdk::contractimport!(file = "../target/wasm32v1-none/release/dsponsor.wasm");
 }
 
 mod dfactory {
@@ -15,7 +15,7 @@ mod dfactory {
     type InitParams = crate::InitParams;
 
     soroban_sdk::contractimport!(
-        file = "../target/wasm32-unknown-unknown/release/dsponsor_factory.wasm"
+        file = "../target/wasm32v1-none/release/dsponsor_factory.wasm"
     );
 }
 
@@ -171,7 +171,10 @@ impl DSponsorAdmin {
      *****************/
 
     // Create a new sponsoring offer
-    pub fn create_offer(env: &Env, nft_contract: Address, offer_params: OfferInitParams) -> u32 {
+    pub fn create_offer(env: &Env, caller: Address, nft_contract: Address, offer_params: OfferInitParams) -> u32 {
+        // Fix: Require authentication and ensure caller is in admins list (Scout audit fix)
+        caller.require_auth();
+        
         // Check that parameters are not empty
         if offer_params.offer_metadata.is_empty() {
             panic!("Empty offer metadata");
@@ -181,6 +184,12 @@ impl DSponsorAdmin {
         }
         if offer_params.options.ad_parameters.is_empty() {
             panic!("No ad parameters provided");
+        }
+        
+        // Fix: Ensure caller is included in admins list for access control (Scout audit fix)
+        let caller_is_admin = offer_params.options.admins.iter().any(|admin| admin.clone() == caller);
+        if !caller_is_admin {
+            panic!("Caller must be included in admins list");
         }
 
         // Increment offer counter
@@ -484,6 +493,9 @@ impl DSponsorAdmin {
         admin: Address,
         offer_params: OfferInitParams,
     ) -> bool {
+        // Fix: Require authentication to ensure caller is the admin (Scout audit fix)
+        admin.require_auth();
+        
         // Check that parameters are not empty
         if offer_params.offer_metadata.is_empty() {
             panic!("Empty offer metadata");
@@ -974,8 +986,16 @@ impl DSponsorAdmin {
             &None,
         );
 
-        // Create the offer
-        let offer_id = Self::create_offer(env, nft_contract.clone(), offer_params);
+        // Create the offer - use contract address as caller since this is called from contract
+        // Fix: Ensure contract address is in admins list (Scout audit fix)
+        let caller = env.current_contract_address();
+        let mut offer_params = offer_params;
+        // Add contract address to admins if not already present
+        let contract_is_admin = offer_params.options.admins.iter().any(|admin| admin.clone() == caller);
+        if !contract_is_admin {
+            offer_params.options.admins.push_back(caller.clone());
+        }
+        let offer_id = Self::create_offer(env, caller, nft_contract.clone(), offer_params);
 
         env.events()
             .publish((symbol_short!("OFFER"),), (nft_contract, offer_id));

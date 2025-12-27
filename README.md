@@ -111,6 +111,7 @@ The contracts are deployed on:
 - All contracts include comprehensive test coverage
 - Implemented Stellar-specific security best practices
 - Adapted access control mechanisms for Soroban
+- Security audit conducted using Scout (CoinFabrik) - see [audit/README.md](./audit/README.md) for details
 
 ## Contributing
 

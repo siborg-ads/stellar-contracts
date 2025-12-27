@@ -1,10 +1,16 @@
 # Rust's output directory
 target/debug
 target/release
-
+target/wasm32v1-none/release
+target 
 # Local settings
 .soroban
 .stellar
 /dsponsor-admin/target
 /dsponsor/target
 dsponsor-factory/target
+dsponsor-market/target
+dsponsor/test_snapshots
+dsponsor-admin/test_snapshots
+dsponsor-factory/test_snapshots
+dsponsor-market/test_snapshots
